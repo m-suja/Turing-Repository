@@ -1,0 +1,131 @@
+--result: 135080 entries have no customer ID 1686 entries with null and negative quantity, null: 127216, 10234 negative quantity --result contain 516384 data, negative value for quantity and null for customer values
+
+WITH RFMValues AS (
+    SELECT  
+      CustomerID,
+      DATE_DIFF('2011-12-01', MAX(DATE(InvoiceDate)), DAY) AS Recency,
+      COUNT(DISTINCT InvoiceNo) AS Frequency,
+      ROUND(SUM(CAST(UnitPrice AS FLOAT64) * CAST(Quantity AS FLOAT64)),1) AS Monetary 
+    FROM `turing_data_analytics.rfm`
+    WHERE (DATE(InvoiceDate) BETWEEN '2010-12-01' AND '2011-12-01') AND (CustomerID IS NOT NULL) AND (Quantity>0) --AND CustomerID= 14298 --17811 --16013,17811 data matches but customerID 14298,15189 doesn't
+      --Filter data to avoid null customer id,negative quantity values and in date range 2010-12-01 to 2011-12-01
+    GROUP BY CustomerID
+    ORDER BY Recency DESC
+),
+ RFMQuintile AS (
+SELECT 
+    MainTable.*,
+    --All percentiles for MONETARY
+    MonQ.percentiles[offset(20)] AS M20, 
+    MonQ.percentiles[offset(40)] AS M40,
+    MonQ.percentiles[offset(60)] AS M60, 
+    MonQ.percentiles[offset(80)] AS M80,
+    MonQ.percentiles[offset(100)] AS M100,    
+    --All percentiles for FREQUENCY
+    FreQ.percentiles[offset(20)] AS F20, 
+    FreQ.percentiles[offset(40)] AS F40,
+    FreQ.percentiles[offset(60)] AS F60, 
+    FreQ.percentiles[offset(80)] AS F80,
+    FreQ.percentiles[offset(100)] AS F100,    
+    --All percentiles for RECENCY
+    RecQ.percentiles[offset(20)] AS R20, 
+    RecQ.percentiles[offset(40)] AS R40,
+    RecQ.percentiles[offset(60)] AS R60, 
+    RecQ.percentiles[offset(80)] AS R80,
+    RecQ.percentiles[offset(100)] AS R100
+FROM 
+    RFMValues Maintable,
+    (SELECT APPROX_QUANTILES(Monetary, 100) percentiles FROM
+    RFMValues) MonQ ,
+    (SELECT APPROX_QUANTILES(Frequency, 100) percentiles FROM
+    RFMValues) FreQ,
+    (SELECT APPROX_QUANTILES(Recency, 100) percentiles FROM
+    RFMValues) RecQ
+),
+
+RFMScore AS (
+    SELECT *, 
+    CAST(ROUND((Fscore + Mscore) / 2, 0) AS INT64) AS FMScore
+    FROM (
+        SELECT *, 
+        CASE WHEN Monetary <= M20 THEN 1
+            WHEN Monetary <= M40 AND Monetary > M20 THEN 2 
+            WHEN Monetary <= M60 AND Monetary > M40 THEN 3 
+            WHEN Monetary <= M80 AND Monetary > M60 THEN 4 
+            WHEN Monetary <= M100 AND Monetary > M80 THEN 5
+        END AS Mscore,
+        CASE WHEN Frequency <= F20 THEN 1
+            WHEN Frequency <= F40 AND Frequency > F20 THEN 2 
+            WHEN Frequency <= F60 AND Frequency > F40 THEN 3 
+            WHEN Frequency <= F80 AND Frequency > F60 THEN 4 
+            WHEN Frequency <= F100 AND Frequency > F80 THEN 5
+        END AS FScore,
+        --Recency scoring is reversed
+        CASE WHEN Recency <= R20 THEN 5
+            WHEN Recency <= R40 AND Recency > R20 THEN 4 
+            WHEN Recency <= R60 AND Recency > R40 THEN 3 
+            WHEN Recency <= R80 AND Recency > R60 THEN 2 
+            WHEN Recency <= R100 AND Recency > R80 THEN 1
+        END AS Rscore,
+        FROM RFMQuintile
+        )
+),
+
+--Define RFM segments
+RFMSegments AS (
+    SELECT 
+        CustomerID,
+        Recency,
+        Frequency, 
+        Monetary,
+        Rscore,
+        Fscore,
+        Mscore,
+        FMscore,
+        CASE WHEN (Rscore = 5 AND FMscore = 5) 
+            OR (Rscore = 5 AND FMscore = 4) 
+            OR (Rscore = 4 AND FMscore = 5) 
+        THEN 'Best Customers'
+        WHEN (Rscore = 5 AND FMscore =3) 
+            OR (Rscore = 4 AND FMscore = 4)
+            OR (Rscore = 3 AND FMscore = 5)
+            OR (Rscore = 3 AND FMscore = 4)
+        THEN 'Loyal Customers'
+        WHEN Mscore>=4
+        THEN 'Big Spenders'
+        WHEN (Rscore = 5 AND FMscore = 2) 
+            OR (Rscore = 4 AND FMscore = 2)
+            OR (Rscore = 3 AND FMscore = 3)
+            OR (Rscore = 4 AND FMscore = 3)
+        THEN 'Potential Loyalists'
+        WHEN Rscore = 5 AND FMscore = 1 THEN 'Recent Customers'
+        WHEN (Rscore = 4 AND FMscore = 1) 
+            OR (Rscore = 3 AND FMscore = 1)
+        THEN 'Promising'
+        WHEN (Rscore = 3 AND FMscore = 2) 
+            OR (Rscore = 2 AND FMscore = 3)
+            OR (Rscore = 2 AND FMscore = 2)
+        THEN 'Customers Needing Attention'
+        WHEN Rscore = 2 AND FMscore = 1 THEN 'About to Sleep'
+        WHEN (Rscore = 2 AND FMscore = 5) 
+            OR (Rscore = 2 AND FMscore = 4)
+            OR (Rscore = 1 AND FMscore = 3)
+        THEN 'At Risk'
+        WHEN (Rscore = 1 AND FMscore = 5)
+            OR (Rscore = 1 AND FMscore = 4)        
+        THEN 'Cant Lose Them'
+        WHEN Rscore = 1 AND FMscore = 2 THEN 'Hibernating'
+        WHEN Rscore = 1 AND FMscore = 1 THEN 'Lost'
+        END AS rfm_segment 
+    FROM RFMScore
+)
+
+SELECT * FROM RFMSegments
+
+
+    
+
+
+
+
+

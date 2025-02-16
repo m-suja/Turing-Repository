@@ -1,0 +1,53 @@
+WITH register AS(
+  SELECT user_pseudo_id user,
+  MIN(PARSE_DATE('%Y%m%d',event_date)) register_date, 
+  MIN(event_timestamp) first_visit 
+  FROM `tc-da-1.turing_data_analytics.raw_events` 
+  GROUP BY user_pseudo_id
+),
+purchase AS(
+  SELECT user_pseudo_id p_user,
+  PARSE_DATE('%Y%m%d',event_date) purchase_date, 
+  purchase_revenue_in_usd revenue
+  FROM `tc-da-1.turing_data_analytics.raw_events` 
+  WHERE event_name='purchase' and purchase_revenue_in_usd>0
+),
+--data including both purchase and registration
+cohort_data as (
+  SELECT reg.user f_user, 
+  DATE_TRUNC(reg.register_date,week) register_week,
+  DATE_TRUNC(pur.purchase_date,week) purchase_week,
+  pur.revenue
+FROM register reg
+LEFT JOIN purchase pur ON reg.user=pur.p_user
+),
+--calculate registration_week and purchase_week difference 
+cohort_week AS(
+  SELECT f_user,
+  register_week,
+  purchase_week, 
+  DATE_DIFF(purchase_week, register_week, week)  week_diff,
+  revenue 
+  FROM cohort_data
+)
+--COHORT TABLE with revenues
+select register_week, 
+COUNT(f_user) registrations,
+ SUM(IF(week_diff = 0, revenue, 0)) week_0,
+ SUM(IF(week_diff = 1, revenue, 0)) week_1,
+ SUM(IF(week_diff = 2, revenue, 0)) week_2,
+ SUM(IF(week_diff = 3, revenue, 0)) week_3,
+ SUM(IF(week_diff = 4, revenue, 0)) week_4,
+ SUM(IF(week_diff = 5, revenue, 0)) week_5,
+ SUM(IF(week_diff = 6, revenue, 0)) week_6,
+ SUM(IF(week_diff = 7, revenue, 0)) week_7,
+ SUM(IF(week_diff = 8, revenue, 0)) week_8,
+ SUM(IF(week_diff = 9, revenue, 0)) week_9,
+ SUM(IF(week_diff = 10, revenue, 0)) week_10,
+ SUM(IF(week_diff = 11, revenue, 0)) week_11,
+ SUM(IF(week_diff = 12, revenue, 0)) week_12
+ FROM cohort_week
+ GROUP BY register_week
+
+
+

@@ -1,0 +1,13 @@
+--Get sample size for the three campaigns that are aggregated based on location_id and promotion
+SELECT 
+COUNTIF(promotion=1) n1,
+COUNTIF(promotion=2) n2,
+COUNTIF(promotion=3) n3,
+FROM (
+--aggregating by location id and promotion
+SELECT 
+    location_id,
+    promotion,
+    SUM(sales_in_thousands) AS total_sales,
+FROM `tc-da-1.turing_data_analytics.wa_marketing_campaign` 
+GROUP BY  location_id,Promotion);
