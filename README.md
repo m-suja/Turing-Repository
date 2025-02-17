@@ -29,7 +29,7 @@ These experiences have prepared me for a **career in data analytics and decision
 - [Linear & Logistic Regression] → Predictive modeling for trend analysis.
 - Customer Segmentation ([RFM & CLV Analysis](https://github.com/m-suja/Turing-Repository/tree/main/09%20CLV%2C%20Customer%20Segmentation%20and%20RFM)) → Identifying high-value customers.
 - [Funnels](https://github.com/m-suja/Turing-Repository/tree/main/08%20Funnel%20Analysis) & [A/B Testing](https://github.com/m-suja/Turing-Repository/tree/main/10%20A%3AB%20Testing) → Measuring campaign effectiveness.
-- 📆 [Retention, Cohort & Churn Analysis](https://github.com/m-suja/Turing-Repository/tree/main/07%20Cohort%20and%20Retentions) → Understanding long-term user engagement.
+- [Retention, Cohort & Churn Analysis](https://github.com/m-suja/Turing-Repository/tree/main/07%20Cohort%20and%20Retentions) → Understanding long-term user engagement.
 
 ### **📈 Communicating Data Insights**
 - [Data Visualization with Tableau](https://github.com/m-suja/Turing-Repository/tree/main/05%20Visualizing%20Data%20using%20Tableau) → Interactive storytelling with dashboards.
@@ -47,7 +47,7 @@ These experiences have prepared me for a **career in data analytics and decision
 
 ---
 
-## 🎯 **Final Thoughts**
+## 🔒 **Final Thoughts**
 My journey at **Turing College** has solidified my expertise in **data analysis, business intelligence, and decision science**. I'm eager to apply my knowledge to **real-world business challenges**, leveraging data to drive **meaningful insights and strategic decisions**.
 
 🚀 **Let's connect and discuss how I can contribute to your team!**  
