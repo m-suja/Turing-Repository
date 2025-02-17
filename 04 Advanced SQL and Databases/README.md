@@ -1,6 +1,6 @@
 # Task
-- you will be asked to create queries to solve specific business questions.
-- You will have to explore [Adventureworks 2005 database](https://drive.google.com/file/d/1-Qsnn3bg0_PYgY5kKJOUDG8xdKLvOLPK/view?usp=sharing), identify the needed data and the correct way to get it/merge it together with other tables within this database.
+- Create queries to solve specific business questions.
+- Explore [Adventureworks 2005 database](https://drive.google.com/file/d/1-Qsnn3bg0_PYgY5kKJOUDG8xdKLvOLPK/view?usp=sharing), identify the needed data and the correct way to get it/merge it together with other tables within this database.
 
 # Solution with CTEs, Window Functions and JOIN
 - [Bigquery Task 1](https://console.cloud.google.com/bigquery?sq=147855269776:10e2b7020e2649c18843c392d98f449e)
