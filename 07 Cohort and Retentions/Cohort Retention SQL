@@ -1,0 +1,23 @@
+--Weekly cohorts
+With weekly AS(
+  SELECT DATE_TRUNC(subscription_start, ISOWEEK) cohort_week, --ISOWEEK to change week to starting from Monday
+  DATE_TRUNC(subscription_end, ISOWEEK) end_Week
+  FROM `turing_data_analytics.subscriptions`
+),
+--Latest week of weekly cohort
+Max_Cohort AS(
+  SELECT MAX(cohort_week) Max_week
+  FROM weekly
+)
+SELECT 
+  cohort_week, 
+  count(*) Week_0,
+  SUM(CASE WHEN (end_Week>DATE_ADD(cohort_week,INTERVAL 1 WEEK)OR end_Week IS NULL) AND (DATE_ADD(cohort_week,INTERVAL 1 WEEK)<=max_cohort.max_week) THEN 1 ELSE 0 END) as Week_1,
+  SUM(CASE WHEN (end_Week>DATE_ADD(cohort_week,INTERVAL 2 WEEK)OR end_Week IS NULL) AND (DATE_ADD(cohort_week,INTERVAL 2 WEEK)<=max_cohort.max_week) THEN 1 ELSE 0 END) as Week_2,
+  SUM(CASE WHEN (end_Week>DATE_ADD(cohort_week,INTERVAL 3 WEEK)OR end_Week IS NULL) AND (DATE_ADD(cohort_week,INTERVAL 3 WEEK)<=max_cohort.max_week) THEN 1 ELSE 0 END) as Week_3,
+  SUM(CASE WHEN (end_Week>DATE_ADD(cohort_week,INTERVAL 4 WEEK)OR end_Week IS NULL) AND (DATE_ADD(cohort_week,INTERVAL 4 WEEK)<=max_cohort.max_week) THEN 1 ELSE 0 END) as Week_4,
+  SUM(CASE WHEN (end_Week>DATE_ADD(cohort_week,INTERVAL 5 WEEK)OR end_Week IS NULL) AND (DATE_ADD(cohort_week,INTERVAL 5 WEEK)<=max_cohort.max_week) THEN 1 ELSE 0 END) as Week_5,
+  SUM(CASE WHEN (end_Week>DATE_ADD(cohort_week,INTERVAL 6 WEEK)OR end_Week IS NULL) AND (DATE_ADD(cohort_week,INTERVAL 6 WEEK)<=max_cohort.max_week) THEN 1 ELSE 0 END) as Week_6
+  FROM weekly,Max_Cohort
+  GROUP BY cohort_week
+  ORDER BY cohort_week;

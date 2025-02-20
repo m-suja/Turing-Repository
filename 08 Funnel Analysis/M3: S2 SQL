@@ -1,0 +1,46 @@
+--creating Funnel with country split
+WITH ranked_events AS (
+  SELECT 
+    *,
+    ROW_NUMBER() OVER (PARTITION BY user_pseudo_id, event_name ORDER BY event_timestamp) rn
+  FROM 
+    `turing_data_analytics.raw_events`
+),
+unique_events AS (
+  SELECT 
+  event_name,
+  COUNTIF(country='United States') US,
+  COUNTIF(country='India') India,
+  COUNTIF(country='Canada') Canada 
+FROM 
+  ranked_events
+WHERE 
+  rn = 1 AND (event_name IN ('view_item','add_payment_info','add_to_cart','begin_checkout','purchase'))
+  GROUP BY 1
+)
+SELECT 
+  RANK() OVER (ORDER BY US DESC) event_order,
+  event_name,
+  US,
+  India,
+  Canada
+  FROM unique_events 
+  ORDER BY event_order;
+
+
+
+--unique events table, test id: 29263455.9104577635
+WITH ranked_events AS (
+  SELECT 
+    *,
+    ROW_NUMBER() OVER (PARTITION BY user_pseudo_id, event_name ORDER BY event_timestamp) AS rn
+  FROM 
+    `turing_data_analytics.raw_events`
+)
+
+SELECT 
+  * 
+FROM 
+  ranked_events
+WHERE 
+  rn = 1;

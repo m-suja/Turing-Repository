@@ -1,0 +1,25 @@
+--Sales Table
+SELECT so.SalesOrderID, so.OrderDate, so.ShipDate, so.CustomerID, so.ContactID,so.SalesPersonID, so.TerritoryID, so.TotalDue, st.CountryRegionCode,CONCAT(co.Firstname, " ", co.LastName) SalesRep
+FROM `adwentureworks_db.salesorderheader` so
+LEFT JOIN `adwentureworks_db.salesterritory` st On so.TerritoryID=st.TerritoryID
+LEFT JOIN `adwentureworks_db.employee` em ON so.SalesPersonID=em.EmployeeId
+LEFT JOIN `adwentureworks_db.contact` co ON em.ContactID=co.ContactId;
+
+--Sales Reason Table: created a separate table which is later joined in Tableau to avoid duplicates
+SELECT s.SalesReasonID,s.Name SalesReason, sr.SalesOrderID
+FROM `adwentureworks_db.salesreason` s
+LEFT JOIN `adwentureworks_db.salesorderheadersalesreason` sr ON s.SalesReasonID=sr.SalesReasonID;
+
+--Product Table
+SELECT p.ProductID,p.Name Product, pc.ProductCategoryID, pc.Name ProductCat, ps.ProductSubcategoryID, ps.Name ProductSubCat, p.StandardCost
+FROM `adwentureworks_db.product` p
+LEFT JOIN `adwentureworks_db.productsubcategory` ps ON p.ProductSubcategoryID=ps.ProductSubcategoryID
+LEFT JOIN `adwentureworks_db.productcategory` pc ON ps.ProductCategoryID=pc.ProductCategoryID;
+
+--salesorderdetail
+SELECT *
+FROM `adwentureworks_db.salesorderdetail`;
+
+--customerType
+SELECT *
+FROM `adwentureworks_db.customer`
