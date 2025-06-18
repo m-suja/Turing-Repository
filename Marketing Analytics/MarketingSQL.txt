@@ -1,0 +1,133 @@
+  --Selecting major data needed
+WITH
+  main_data AS (
+  SELECT
+    user_pseudo_id,
+    event_name,
+    TIMESTAMP_MICROS(event_timestamp) AS event_time,
+    campaign,
+    country,
+    category,
+    purchase_revenue_in_usd
+  FROM
+    `tc-da-1.turing_data_analytics.raw_events` ),
+  -- Finding the previous event time
+  last_session AS (
+  SELECT
+    *,
+    LAG(event_time) OVER (PARTITION BY user_pseudo_id ORDER BY main_data.event_time) AS last_event
+  FROM
+    main_data ),
+  -- Calculating a new session as new session from 60 minutes of inactivity
+  new_session AS (
+  SELECT
+    *,
+    CASE
+      WHEN (event_time - last_event) >= INTERVAL '30' MINUTE OR last_event IS NULL THEN 1
+      ELSE 0
+  END
+    AS is_new_session
+  FROM
+    last_session ),
+  sessions AS (
+  SELECT
+    user_pseudo_id,
+    event_name,
+    event_time,
+    SUM(is_new_session) OVER (ORDER BY user_pseudo_id, event_time) AS global_session_id,
+    SUM(is_new_session) OVER (PARTITION BY user_pseudo_id ORDER BY event_time) AS user_session_id,
+    campaign,
+    country,
+    category,
+    purchase_revenue_in_usd
+  FROM
+    new_session ),
+  -- Finding the sessions campaign name
+  campaign AS (
+  SELECT
+    user_pseudo_id,
+    global_session_id,
+    adsense_campaign.*,
+  FROM
+    sessions
+  JOIN (
+    SELECT
+      DISTINCT (Campaign) AS Campaign_name
+    FROM
+      `tc-da-1.turing_data_analytics.adsense_monthly`) AS adsense_campaign
+  ON
+    sessions.campaign = adsense_campaign.Campaign_name ),
+  --Calculating each session Revenue
+  session_revenue AS (
+  SELECT
+    user_pseudo_id,
+    global_session_id,
+    SUM(purchase_revenue_in_usd) AS revenue
+  FROM
+    sessions
+  GROUP BY
+    user_pseudo_id,
+    global_session_id ),
+  -- Calculating each session session times in minutes
+  session_time AS (
+  SELECT
+    user_pseudo_id,
+    user_session_id,
+    global_session_id,
+    MIN(event_time) AS first_event_time,
+    MAX(event_time) AS last_event_time,
+    country,
+    category,
+    (DATE_DIFF(MAX(event_time),MIN(event_time),second)) AS session_duration,
+  FROM
+    sessions
+  GROUP BY
+    user_pseudo_id,
+    user_session_id,
+    global_session_id,
+    country,
+    category ),
+  -- Joining session time data and session revenues
+  combined_data AS (
+  SELECT
+    session_time.user_pseudo_id,
+    session_time.global_session_id,
+    session_time.user_session_id,
+    session_time.first_event_time,
+    session_time.last_event_time,
+    session_time.country,
+    session_time.category,
+    campaign.campaign_name,
+    session_time.session_duration,
+    CASE
+      WHEN session_time.session_duration = 0 THEN 1
+      ELSE 0
+  END
+    AS bounce_status,
+    session_revenue.revenue
+  FROM
+    session_time
+  JOIN
+    campaign
+  ON
+    session_time.global_session_id = campaign.global_session_id
+  JOIN
+    session_revenue
+  ON
+    session_time.global_session_id = session_revenue.global_session_id
+  GROUP BY
+    user_pseudo_id,
+    global_session_id,
+    user_session_id,
+    first_event_time,
+    last_event_time,
+    campaign.campaign_name,
+    country,
+    session_time.category,
+    session_duration,
+    session_revenue.revenue )
+  -- main query where selecting all the data for futher analysis
+SELECT
+  *
+FROM
+  combined_data

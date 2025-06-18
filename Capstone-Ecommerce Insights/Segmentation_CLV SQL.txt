@@ -1,0 +1,184 @@
+WITH
+  main_data AS(
+  SELECT
+    sales.*,
+    CASE
+      WHEN sales.coupon_status='Used' OR sales.coupon_status IS NOT NULL THEN ROUND(((Quantity * Avg_Price)*(1-IFNULL(discount_pct, 0) / 100)*(1 + IFNULL(Tax.GST, 0)) + Delivery_Charges),2)
+      ELSE ROUND((((Quantity * Avg_Price)*(1 + IFNULL(Tax.GST, 0))) + Delivery_Charges),2)
+  END
+    AS revenue,
+    discount_pct,
+    customers.location,
+    customers.gender,
+    tax.GST
+  FROM
+    `turing-data-analytics-450718.ecommerce_data.Sales` AS sales
+  LEFT JOIN
+    `turing-data-analytics-450718.ecommerce_data.Customers` AS customers
+  ON
+    sales.CustomerID = customers.CustomerID
+  LEFT JOIN
+    `turing-data-analytics-450718.ecommerce_data.Coupons` AS discounts
+  ON
+    sales.Product_Category = discounts.Product_Category
+    AND FORMAT_DATE('%b', Transaction_Date) = discounts.Month
+  LEFT JOIN
+    `turing-data-analytics-450718.ecommerce_data.Tax_Info` AS tax
+  ON
+    sales.Product_Category = tax.Product_Category ),
+  FM_table AS (
+  SELECT
+    main_data.customerid,
+    MAX(Transaction_Date) AS last_purchase_date,
+    MIN(Transaction_Date) AS first_purchase_date,
+    COUNT(DISTINCT(main_data.transaction_id)) AS frequency,
+    ROUND(SUM(main_data.revenue),2) AS monetary
+  FROM
+    main_data
+  GROUP BY
+    1 ),
+  R_table AS (
+  SELECT
+    CustomerID,
+    frequency,
+    monetary,
+    DATE_DIFF(MAX(last_purchase_date) OVER(), last_purchase_date, day) AS recency,
+    DATE_DIFF(last_purchase_date, first_purchase_date, day)/365.0 AS customer_lifetime_years
+  FROM
+    FM_table ),
+  quantiles AS (
+  SELECT
+    R_table.*,
+    R_percentiles.percentiles[
+  OFFSET
+    (25)] AS r25,
+    R_percentiles.percentiles[
+  OFFSET
+    (50)] AS r50,
+    R_percentiles.percentiles[
+  OFFSET
+    (75)] AS r75,
+    R_percentiles.percentiles[
+  OFFSET
+    (100)] AS r100,
+    F_percentiles.percentiles[
+  OFFSET
+    (25)] AS f25,
+    F_percentiles.percentiles[
+  OFFSET
+    (50)] AS f50,
+    F_percentiles.percentiles[
+  OFFSET
+    (75)] AS f75,
+    F_percentiles.percentiles[
+  OFFSET
+    (100)] AS f100,
+    M_percentiles.percentiles[
+  OFFSET
+    (25)] AS m25,
+    M_percentiles.percentiles[
+  OFFSET
+    (50)] AS m50,
+    M_percentiles.percentiles[
+  OFFSET
+    (75)] AS m75,
+    M_percentiles.percentiles[
+  OFFSET
+    (100)] AS m100
+  FROM
+    R_table,
+    (
+    SELECT
+      APPROX_QUANTILES(recency, 100) AS percentiles
+    FROM
+      R_table) AS R_percentiles,
+    (
+    SELECT
+      APPROX_QUANTILES(frequency, 100) AS percentiles
+    FROM
+      R_table) AS F_percentiles,
+    (
+    SELECT
+      APPROX_QUANTILES(monetary, 100) AS percentiles
+    FROM
+      R_table) AS M_percentiles ),
+  scores_assigned AS (
+  SELECT
+    *,
+    ROUND(monetary / frequency * customer_lifetime_years, 2) AS CLV,
+    CAST(ROUND((f_score + m_score) / 2, 0) AS INT64) AS fm_score
+  FROM (
+    SELECT
+      *,
+      CASE
+        WHEN monetary <= m25 THEN 1
+        WHEN monetary <= m50
+      AND monetary > m25 THEN 2
+        WHEN monetary <= m75 AND monetary > m50 THEN 3
+        WHEN monetary <= m100
+      AND monetary > m75 THEN 4
+    END
+      AS m_score,
+      CASE
+        WHEN frequency <= f25 THEN 1
+        WHEN frequency <= f50
+      AND frequency > f25 THEN 2
+        WHEN frequency <= f75 AND frequency > f50 THEN 3
+        WHEN frequency <= f100
+      AND frequency > f75 THEN 4
+    END
+      AS f_score,
+      -- Recency scoring is reversed
+      CASE
+        WHEN recency <= r25 THEN 4
+        WHEN recency <= r50
+      AND recency > r25 THEN 3
+        WHEN recency <= r75 AND recency > r50 THEN 2
+        WHEN recency <= r100
+      AND recency > r75 THEN 1
+    END
+      AS r_score,
+    FROM
+      quantiles) ),
+  customers_segments AS (
+  SELECT
+    customerid,
+    CLV,
+    CASE
+      WHEN (r_score = 4 AND fm_score = 4) THEN 'Top Customers'
+      WHEN (r_score = 4
+      AND fm_score =3)
+    OR (r_score = 3
+      AND fm_score = 4) THEN 'Loyal Customers'
+      WHEN (r_score = 4 AND fm_score = 2) OR (r_score = 4 AND fm_score = 2) OR (r_score = 3 AND fm_score = 3) OR (r_score = 4 AND fm_score = 3) THEN 'Potential Loyalists'
+      WHEN (r_score = 4
+      AND fm_score = 1)
+    OR (r_score = 3
+      AND fm_score = 1) THEN 'Recent Customers'
+      WHEN (r_score = 3 AND fm_score = 2) OR (r_score = 2 AND fm_score = 3) OR (r_score = 2 AND fm_score = 2) THEN 'Customers Needing Attention'
+      WHEN (r_score = 2
+      AND fm_score = 5)
+    OR (r_score = 2
+      AND fm_score = 4)
+    OR (r_score = 1
+      AND fm_score = 3) THEN 'At Risk'
+      WHEN (r_score = 1 AND fm_score = 4) THEN 'Cant Lose Them'
+      WHEN (r_score = 2
+      AND fm_score = 1)
+    OR (r_score = 1
+      AND fm_score = 2) THEN 'Hibernating'
+      WHEN r_score = 1 AND fm_score = 1 THEN 'Lost'
+  END
+    AS customer_segment
+  FROM
+    scores_assigned )
+SELECT
+  main_data.*,
+  customers_segments.customer_segment,
+  customers_segments.CLV
+FROM
+  main_data
+JOIN
+  customers_segments
+ON
+  main_data.customerid = customers_segments.customerid

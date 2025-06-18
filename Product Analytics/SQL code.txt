@@ -1,0 +1,67 @@
+WITH
+  base AS (
+  SELECT
+    user_pseudo_id AS user_id,
+    TIMESTAMP_MICROS(event_timestamp) AS occured_at,
+    event_name AS event,
+    purchase_revenue_in_usd AS purchase_USD,
+    category AS device_type,
+    country,
+    operating_system,
+    medium,
+  FROM
+    `turing_data_analytics.raw_events`
+  WHERE
+    NOT (purchase_revenue_in_usd <=0
+      AND event_name = 'purchase') ),
+
+  previous AS(
+  SELECT
+    *,
+    LAG(base.occured_at,1) OVER (PARTITION BY base.user_id ORDER BY base.occured_at) AS prev_time,
+    LAG(event,1) OVER (PARTITION BY base.user_id ORDER BY base.occured_at) AS prev_event
+  FROM
+    base ),
+
+  first_session AS(
+  SELECT
+    user_id,
+    previous.occured_at
+  FROM
+    previous
+  WHERE
+    prev_event IS NULL ),
+
+  first_purchase AS(
+  SELECT
+    user_id,
+    event,
+    MIN(occured_at) AS purchase_at
+  FROM
+    base
+  GROUP BY
+    user_id,
+    event
+  HAVING
+    event = 'purchase' ),
+
+duration AS(
+SELECT
+  first_session.user_id,
+  purchase_at,
+  TIMESTAMP_DIFF(first_purchase.purchase_at, first_session.occured_at, DAY) AS duration_days,
+  TIMESTAMP_DIFF(first_purchase.purchase_at, first_session.occured_at, MINUTE) AS duration_min
+FROM
+  first_session
+JOIN
+  first_purchase
+ON
+  first_session.user_id = first_purchase.user_id)
+
+SELECT 
+ base.*,
+ duration.duration_days,
+ duration.duration_min
+FROM base
+LEFT JOIN duration ON base.user_id = duration.user_id
+AND base.occured_at = duration.purchase_at
