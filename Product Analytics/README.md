@@ -33,7 +33,7 @@ Your Product Manager wants to understand how much time it takes for a user to ma
 ## 🔎 Analysis Approach  
 
 📌 **SQL for Data Exploration**  
-🔗 [SQL Code](https://github.com/TuringCollegeSubmissions/smanan-PA.1.3/blob/main/SQL%20code)  
+🔗 [SQL Code](https://github.com/m-suja/Turing-Repository/blob/master/Product%20Analytics/SQL%20code.txt)  
 
 📌 **Tableau Dashboard for Visualization**  
 🔗 [Interactive Dashboard](https://public.tableau.com/app/profile/suja.manandhar/viz/ProductAnalyticsWIP/Dashboard1?publish=yes)  
