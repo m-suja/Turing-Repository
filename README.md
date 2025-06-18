@@ -23,8 +23,8 @@ These experiences have prepared me for a **career in data analytics and decision
 ## 📌 **Featured Projects**
 ### **🔍 Business Analytics & Insights**
 - [Ecommerce Customer Segmentation based on RFM and CLV and Retention Strategy](https://github.com/m-suja/Turing-Repository/tree/master/Capstone-Ecommerce%20Insights)
-- [Product Analytics → Data-driven insights into Dynamic User Behavior Analysis] (https://github.com/m-suja/Turing-Repository/tree/master/Product%20Analytics)
-- [Marketing Analytics → User Session Analysis based on Marketing campaigns] (https://github.com/m-suja/Turing-Repository/tree/master/Marketing%20Analytics)
+- [Product Analytics → Data-driven insights into Dynamic User Behavior Analysis](https://github.com/m-suja/Turing-Repository/tree/master/Product%20Analytics)
+- [Marketing Analytics → User Session Analysis based on Marketing campaigns](https://github.com/m-suja/Turing-Repository/tree/master/Marketing%20Analytics)
 
 ### **📊 Data Analytics & Machine Learning Techniques**
 - [Linear & Logistic Regression] → Predictive modeling for trend analysis.
