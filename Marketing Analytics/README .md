@@ -35,7 +35,7 @@ Your Marketing Manager wants to to identify **the overall trends of all marketin
 🔗 [SQL Code](https://console.cloud.google.com/bigquery?sq=278504805065:495de799826a454aa37f508268d8f9c5)
 
 📌 **Tableau Dashboard and Presentation for Visualization**  
-🔗 [Interactive Dashboard](https://public.tableau.com/app/profile/suja.manandhar/viz/Marketing_17467282043550/Dashboard1)
+🔗 [Interactive Dashboard](https://public.tableau.com/app/profile/suja.manandhar/viz/Marketing_17472291917420/Dashboard1)
 
 ---
 
