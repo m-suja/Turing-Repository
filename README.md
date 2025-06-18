@@ -27,7 +27,7 @@ These experiences have prepared me for a **career in data analytics and decision
 - [Marketing Analytics → User Session Analysis based on Marketing campaigns](https://github.com/m-suja/Turing-Repository/tree/master/Marketing%20Analytics)
 
 ### **📊 Data Analytics & Machine Learning Techniques**
-- [Linear & Logistic Regression] → Predictive modeling for trend analysis.
+- [Linear & Logistic Regression](https://github.com/m-suja/Turing-Repository/tree/master/14%20Linear%20and%20Logistic%20Regression) → Predictive modeling for trend analysis.
 - [Funnels](https://github.com/m-suja/Turing-Repository/tree/main/08%20Funnel%20Analysis) → Identifying bottlenecks in User Journey
 - [A/B Testing](https://github.com/m-suja/Turing-Repository/tree/main/10%20A%3AB%20Testing) → Measuring campaign effectiveness.
 - [Retention, Cohort & Churn Analysis](https://github.com/m-suja/Turing-Repository/tree/main/07%20Cohort%20and%20Retentions) → Understanding long-term user engagement.
