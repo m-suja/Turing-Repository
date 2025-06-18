@@ -4,7 +4,7 @@
 Your Marketing Manager wants to to identify **the overall trends of all marketing campaigns on your e-commerce site**. She is particularly interested in finding out if **users tend to spend more time on your website on certain weekdays** and **how that behavior differs across campaigns**. 
 ### ✅ Deliverables  
 - **Dynamic Session Duration Analysis:** Visualize how session durations vary daily.  
-- **Presentation:** Build a compelling **data-driven story** based on insights.  
+- **Presentation:** Build a compelling **data-driven story** based on insights.   
 - **Exploratory Analysis:** Identify interesting data points for additional insights.  
 - **Analytical Insights:** Highlight **drawbacks** and suggest further analysis.  
 
