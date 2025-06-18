@@ -77,5 +77,5 @@ A data analysis project for a U.S.-based e-commerce company specializing in home
 - [Presentation Deck](https://www.canva.com/design/DAGou17zor4/sAqkr0XJ2SWfojyhokgdGQ/edit?utm_content=DAGou17zor4&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 - SQL Files:
   - [Cohort SQl](https://github.com/m-suja/Turing-Repository/blob/master/Capstone-Ecommerce%20Insights/Cohort%20SQL.txt)
-  - [Segmentation and CLV SQL](https://github.com/TuringCollegeSubmissions/smanan-DACP.1.1/blob/main/Segmentation_CLV%20SQL)
+  - [Segmentation and CLV SQL](https://github.com/m-suja/Turing-Repository/blob/master/Capstone-Ecommerce%20Insights/Segmentation_CLV%20SQL.txt)
 
